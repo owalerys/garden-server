@@ -92,11 +92,13 @@ CREATE TABLE rule_limit(
 
 CREATE TABLE activation(
   uuid VARCHAR(36) PRIMARY KEY,
-  rule_uuid VARCHAR(36) NOT NULL,
+  rule_uuid VARCHAR(36) NULL,
+  relay_uuid VARCHAR(36) NULL,
   start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   end_time TIMESTAMP NULL,
   last_update TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (rule_uuid) REFERENCES rule (uuid)
+  FOREIGN KEY (rule_uuid) REFERENCES rule (uuid),
+  FOREIGN KEY (relay_uuid) REFERENCES relay (uuid)
 );
 
 CREATE INDEX activation_time ON activation (end_time, start_time);

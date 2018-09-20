@@ -1,0 +1,74 @@
+import click
+import serial.tools
+import re
+from garden.db import get_db
+from garden.base import Model, Collection
+
+class Garden(object):
+    def __init__(self):
+        self.slaves = Collection(Slave).recordsByUUID()
+        self.sensors = Collection(Sensor).recordsByUUID()
+        self.relays = Collection(Relay).recordsByUUID()
+        self.schedules = Collection(Schedule).recordsByUUID()
+        self.rules = Collection(Rule).recordsByUUID()
+        self.elements = Collection(Element).recordsByUUID()
+        self.consequences = Collection(Consequence).recordsByUUID()
+        self.rule_limits = Collection(RuleLimit).recordsByUUID()
+        self.iterator = False
+
+        self.connections = {}
+
+    def setIterator(self):
+        self.iterator = True
+
+    def isIterator(self):
+        return self.iterator
+
+    def iterate(self):
+        self.setIterator()
+        self.makeConnections()
+
+    def makeConnections(self):
+        print(serial.tools)
+        ports_to_check = serial.tools.list_ports(re.compile("\/dev\/ttyACM[0-9]+"))
+
+        print(ports_to_check)
+
+        for port in ports_to_check:
+            print(port)
+
+    def close(self):
+        """Close out all of the connections"""
+
+class Client(Model):
+    _table = 'client'
+
+class Slave(Model):
+    _table = 'slave' 
+
+class Sensor(Model):
+    _table = 'sensor'
+
+class Relay(Model):
+    _table = 'relay'
+
+class Schedule(Model):
+    _table = 'schedule'
+
+class Rule(Model):
+    _table = 'rule'
+
+class Element(Model):
+    _table = 'element'
+
+class Consequence(Model):
+    _table = 'consequence'
+
+class RuleLimit(Model):
+    _table = 'rule_limit'
+
+class Activation(Model):
+    _table = 'activation'
+
+class Measurement(Model):
+    _table = 'measurement'

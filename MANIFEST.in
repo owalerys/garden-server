@@ -1,0 +1,4 @@
+include garden/schema.sql
+graft garden/static
+graft garden/templates
+global-exclude *.pyc
