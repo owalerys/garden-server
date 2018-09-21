@@ -107,6 +107,12 @@ class Model(object):
             dictionary[key] = row[key]
         return cls(dictionary).fromDB()
 
+    @classmethod
+    def recordsByUUID(cls):
+        collection = Collection(cls)
+        collection.recordsByUUID()
+        return collection
+
 class Collection(object):
     def __init__(self, model_class):
         self.model_class = model_class
@@ -123,6 +129,17 @@ class Collection(object):
             self.records[row['uuid']] = self.model_class.fromRow(row=row)
 
     def fetchByUUID(self, uuid):
-        if self.records[uuid] is not None:
+        if uuid in self.records:
             return self.records[uuid]
         return None
+
+    def addNewRecord(self, dictionary):
+        record = self.model_class(dictionary)
+        self.records[record.uuid] = record
+        return record
+
+    def iterate(self):
+        for key in self.records:
+            record = self.fetchByUUID(key)
+            if record:
+                yield self.fetchByUUID(key)

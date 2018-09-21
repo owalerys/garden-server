@@ -52,6 +52,8 @@ CREATE TABLE relay (
 CREATE TABLE schedule (
   uuid VARCHAR(36) PRIMARY KEY,
   nickname VARCHAR(255) NOT NULL,
+  schedule_start INT NOT NULL,
+  schedule_end INT NOT NULL,
   active BOOLEAN NOT NULL DEFAULT 1
 );
 

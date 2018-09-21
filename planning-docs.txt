@@ -38,3 +38,10 @@
 
 -as a result of deletions
 -hide from ui
+
+=== possible communication failures ===
+
+-on connect attempt
+-on send
+-on receive
+-on disconnect attempt

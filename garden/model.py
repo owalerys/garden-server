@@ -7,16 +7,17 @@ import PyCmdMessenger
 class Garden(object):
 
     def __init__(self):
-        self.slaves = Collection(Slave).recordsByUUID()
-        self.sensors = Collection(Sensor).recordsByUUID()
-        self.relays = Collection(Relay).recordsByUUID()
-        self.schedules = Collection(Schedule).recordsByUUID()
-        self.rules = Collection(Rule).recordsByUUID()
-        self.elements = Collection(Element).recordsByUUID()
-        self.consequences = Collection(Consequence).recordsByUUID()
-        self.rule_limits = Collection(RuleLimit).recordsByUUID()
+        self.slaves = Slave.recordsByUUID()
+        self.sensors = Sensor.recordsByUUID()
+        self.relays = Relay.recordsByUUID()
+        self.schedules = Schedule.recordsByUUID()
+        self.rules = Rule.recordsByUUID()
+        self.elements = Element.recordsByUUID()
+        self.consequences = Consequence.recordsByUUID()
+        self.rule_limits = RuleLimit.recordsByUUID()
         self.iterator = False
         self.connection_manager = None
+        self.readings = {}
 
     def setIterator(self):
         self.iterator = True
@@ -30,12 +31,60 @@ class Garden(object):
         self.setIterator()
         
         while True:
-            self.connection_manager.makeConnections()
+            self.tickLoop()
+
+    def tickLoop(self):
+        self.resetOfflineOnline()
+        self.connection_manager.makeConnections()
+        self.updateSlaves()
+        self.readActiveSensors()
+
+    def updateSlaves(self):
+        online = {}
+
+        for uuid in self.connection_manager.iterate():
+            slave = self.slaves.fetchByUUID(uuid)
+            online[uuid] = True
+            if slave:
+                if not slave.connected:
+                    slave.connected = True
+                    slave.save()
+                    self.flagOfflineOnline()
+                    click.echo("Slave marked connected in db.")
+            else:
+                slave = self.slaves.addNewRecord({'uuid': uuid, 'nickname': '', 'connected': True})
+                slave.save()
+                self.flagOfflineOnline()
+                click.echo("Slave created and marked connected in db.")
+
+        for slave in self.slaves.iterate():
+            if slave.connected and slave.uuid not in online:
+                slave.connected = False
+                slave.save()
+                self.flagOfflineOnline()
+                click.echo("Slave marked disconnected in db.")
+
+    def readActiveSensors(self):
+        self.readings = {}
+
+        for sensor in self.sensors.iterate():
+            slave = self.slaves.fetchByUUID(sensor.slave_uuid)
+
+            if sensor.active and slave.connected:
+                reading = self.connection_manager.readSensor(sensor)
+                self.readings[sensor.uuid] = reading
+
+    def flagOfflineOnline(self):
+        self.offline_online_flag = True
+
+    def resetOfflineOnline(self):
+        self.offline_online_flag = False
 
     def close(self):
         """Close out all of the connections"""
         if self.connection_manager:
             self.connection_manager.despawn()
+            self.updateSlaves()
 
 class ConnectionManager(object):
 
@@ -75,6 +124,11 @@ class ConnectionManager(object):
                 self.terminateConnection(device)
                 self.establishConnection(device)
                 continue
+
+    def iterate(self):
+        for uuid in self.connections:
+            if self.isDeviceConnected(uuid):
+                yield uuid
 
     def despawn(self):
         click.echo("Shutting down all connections")
@@ -176,6 +230,23 @@ class ConnectionManager(object):
         else:
             return False
 
+    def readSensor(self, sensor):
+        if self.isDeviceConnected(sensor.slave_uuid):
+            try:
+                c = self.connections[sensor.slave_uuid]
+
+                c.send("sensor", sensor.getPinType(), sensor.getPin(), sensor.getDriver(), sensor.getMeasurementType())
+                msg = c.receive()
+            except serial.serialutil.SerialException as e:
+                return None
+
+            if msg[0] == "sensor_response":
+                return msg[1][1]
+            else:
+                return None
+        else:
+            return None
+
 class Client(Model):
     _table = 'client'
 
@@ -184,6 +255,21 @@ class Slave(Model):
 
 class Sensor(Model):
     _table = 'sensor'
+
+    def getPinType():
+        if self.digital:
+            return 'digital'
+        else:
+            return 'analog'
+
+    def getPin():
+        return self.pin
+
+    def getDriver():
+        return self.driver
+
+    def getMeasurementType():
+        return self.measurement_type
 
 class Relay(Model):
     _table = 'relay'
