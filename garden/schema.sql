@@ -71,6 +71,7 @@ CREATE TABLE element(
   rule_uuid VARCHAR(36) NOT NULL,
   sensor_uuid VARCHAR(36) NOT NULL,
   max_value DECIMAL(10,5) NULL,
+  target_value DECIMAL(10, 5) NULL,
   min_value DECIMAL(10,5) NULL,
   FOREIGN KEY (rule_uuid) REFERENCES rule (uuid)
   FOREIGN KEY (sensor_uuid) REFERENCES sensor (uuid)

@@ -1,18 +1,19 @@
 === algorithm ===
 
--search /dev/ttyACM* for new devices and check all current connections
--check all connections against current database
--add any new connections
--mark all connected connections
--mark all disconnected connections
 -if any changes were recorded issue a config reload
--take all sensor measurements
+*-search /dev/ttyACM* for new devices and check all current connections
+*-check all connections against current database
+*-add any new connections
+*-mark all connected connections
+*-mark all disconnected connections
+*-take all sensor measurements
 -activate all relays that have been manually-toggled
 -match the current schedule
 -evaluate all logic for the current schedule
 -check activation limits against rule activations
 -turn on all relays that should be on
 -turn off all relays that are configured but don't have an active rule
+-record sensor readings in db
 -record activations for all rules that are active
 -dispatch data recorded event (manual activations, measurements, rule activations)
 
@@ -33,6 +34,10 @@
 -add/update/deactivate schedule (return config load event)
 -(return slave online/offline event)
 -(return disconnect event)
+
+=== on initialisation ===
+
+-check all left open activations
 
 === active theory ===
 

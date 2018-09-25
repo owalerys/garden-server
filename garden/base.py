@@ -20,6 +20,11 @@ class Model(object):
         self._persisted = False
         self._clean = False
 
+        self.afterInit()
+
+    def afterInit(self):
+        pass
+
     def fromDB(self):
         self._persisted = True
         self._clean = True
@@ -63,7 +68,12 @@ class Model(object):
 
         self._clean = True
 
+    def preSave(self):
+        pass
+
     def save(self):
+        self.preSave()
+
         dictionary = self.dictionary()
 
         db = get_db()
@@ -118,6 +128,15 @@ class Collection(object):
         self.model_class = model_class
         self.records = {}
 
+    def filteredCollection(self, param, value):
+        output = Collection(self.model_class)
+        
+        for model in self.iterate():
+            if model.getAttribute(param) == value:
+                output.pushExistingModel(model)
+
+        return output
+
     def recordsByUUID(self):
         db = get_db()
 
@@ -133,6 +152,13 @@ class Collection(object):
             return self.records[uuid]
         return None
 
+    def pushRows(self, rows):
+        for row in rows:
+            self.records[row['uuid']] = self.model_class.fromRow(row=row)
+
+    def pushExistingModel(self, model):
+        self.records[model.uuid] = model
+
     def addNewRecord(self, dictionary):
         record = self.model_class(dictionary)
         self.records[record.uuid] = record
@@ -143,3 +169,6 @@ class Collection(object):
             record = self.fetchByUUID(key)
             if record:
                 yield self.fetchByUUID(key)
+
+    def count(self):
+        return len(self.records)
