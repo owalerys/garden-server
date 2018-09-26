@@ -7,15 +7,32 @@
 *-mark all connected connections
 *-mark all disconnected connections
 *-take all sensor measurements
--activate all relays that have been manually-toggled
--match the current schedule
--evaluate all logic for the current schedule
--check activation limits against rule activations
--turn on all relays that should be on
--turn off all relays that are configured but don't have an active rule
--record sensor readings in db
--record activations for all rules that are active
+*-activate all relays that have been manually-toggled
+*-record all forced toggles --- V2
+*-match the current schedule
+*-evaluate all logic for the current schedule
+*-check activation limits against rule activations
+*-turn on all relays that should be on
+*-turn off all relays that are configured but don't have an active rule
+-record sensor readings in db (once per minute)
+*-record activations for all rules that are active
 -dispatch data recorded event (manual activations, measurements, rule activations)
+
+=== toggle limiter ===
+
+-if forced send on signal
+-if any rule wants on and will allow then use on
+-if set off but false on setTo then keep on
+-if set on but false on setTo the keep off
+
+=== sensor reading evaluation ===
+
+-activate below min value until at or above target value
+-activate above max value until at or below target value
+
+-when in range do not switch on
+-when in range keep on
+-when below or above range (depend min or max) switch on
 
 === query actives ===
 
