@@ -122,7 +122,7 @@ class Garden(object):
                     relay = self.relays.fetchByUUID(consequence.relay_uuid)
                     
                     if relay and relay.active:
-                        self.relays_signals[relay.uuid] = True
+                        self.relay_signals[relay.uuid] = True
 
     def contactRelays(self):
         self.relay_results = {}
@@ -166,8 +166,7 @@ class ConnectionManager(object):
             ["sensor", "siss"],
             ["sensor_response", "if"],
             ["relay", "ii"],
-            ["relay_response", "ii"],
-            ["disabled_output", "ii"]]
+            ["relay_response", "ii"]]
     
     def __init__(self):
         self.connections = {}
@@ -415,7 +414,7 @@ class Relay(Model):
         current_utc = time.time()
 
         if new_state != self.current_state:
-            can = current_time >= (self.last_toggle + self._safety_seconds)
+            can = current_utc >= (self.last_toggle + self._safety_seconds)
 
             if can:
                 self.current_state = new_state
@@ -598,12 +597,12 @@ class Consequence(Model):
 class RuleLimit(Model):
     _table = 'rule_limit'
 
-    def exceeded(activations):
+    def exceeded(self, activations):
         every = self.every
         period = self.period
         count = 0
 
-        start = (datetime.datetime.now() - datetime.timedelta(second = every)).timestamp()
+        start = (datetime.datetime.now() - datetime.timedelta(seconds = every)).timestamp()
         end = datetime.datetime.now().timestamp()
 
         for activation in activations.iterate():
@@ -616,7 +615,7 @@ class RuleLimit(Model):
             if ending_value > starting_value:
                 count += (ending_value - starting_value)
 
-        return count < period
+        return not (count < period)
 
 class Activation(Model):
     _table = 'activation'
