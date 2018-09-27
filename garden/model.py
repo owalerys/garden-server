@@ -320,7 +320,7 @@ class ConnectionManager(object):
                 return None
 
             if msg[0] == "sensor_response":
-                click.echo("Recorded output: %s, %s" % msg[1])
+                click.echo("Recorded output: %s, %s" % (msg[1][0], msg[1][1]))
                 return msg[1][1]
             else:
                 click.echo("Error details: %s" % msg[1][0])
