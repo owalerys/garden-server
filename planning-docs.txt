@@ -67,3 +67,15 @@
 -on send
 -on receive
 -on disconnect attempt
+
+=== App Views ===
+
+-Welcome screen
+-Registration screen
+-Login attempt screen
+-Relays screen (and add/edit view)
+-Sensors screen (and add/edit view)
+-Rules screen (and add/edit view)
+-Slaves screen (and edit view)
+-Schedules screen (and add/edit view)
+-Data screen (pick activation and measurement data) --- AT A LATER TIME

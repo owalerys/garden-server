@@ -84,6 +84,7 @@ class Garden(object):
 
     def readActiveSensors(self):
         self.readings = {}
+        current_time = time.time()
 
         for sensor in self.sensors.iterate():
             slave = self.slaves.fetchByUUID(sensor.slave_uuid)
@@ -91,6 +92,7 @@ class Garden(object):
             if sensor.active and slave.connected:
                 reading = self.connection_manager.readSensor(sensor)
                 self.readings[sensor.uuid] = reading
+                sensor.checkAndPersistReading(reading, current_time)
 
     def checkSchedule(self):
         self.scheduler = {}
@@ -358,6 +360,9 @@ class Slave(Model):
 class Sensor(Model):
     _table = 'sensor'
 
+    def afterInit(self):
+        self.last_reading = 0
+
     def getPinType(self):
         if self.digital:
             return 'digital'
@@ -372,6 +377,12 @@ class Sensor(Model):
 
     def getMeasurementType(self):
         return self.measurement_type
+
+    def checkAndPersistReading(self, reading, current_time):
+        if reading is not None and ((self.last_reading + 60) < current_time):
+            persisted = Measurement({'sensor_uuid': self.uuid, 'recorded_value': reading})
+            persisted.save()
+            self.last_reading = current_time
 
 class Relay(Model):
     _table = 'relay'
