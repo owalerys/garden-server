@@ -313,19 +313,19 @@ class ConnectionManager(object):
             try:
                 c = self.connections[sensor.slave_uuid]
 
-                click.echo("Reading for: %s, %s, %s, %s, %s" % (sensor.uuid, sensor.getPinType(), sensor.getPin(), sensor.getDriver(), sensor.getMeasurementType()))
+                # click.echo("Reading for: %s, %s, %s, %s, %s" % (sensor.uuid, sensor.getPinType(), sensor.getPin(), sensor.getDriver(), sensor.getMeasurementType()))
 
                 c.send("sensor", sensor.getPinType(), sensor.getPin(), sensor.getDriver(), sensor.getMeasurementType())
                 msg = c.receive()
             except serial.serialutil.SerialException as e:
-                click.echo("Reading exception on: %s" % sensor.uuid)
+                # click.echo("Reading exception on: %s" % sensor.uuid)
                 return None
 
             if msg[0] == "sensor_response":
-                click.echo("Recorded output: %s, %s" % (msg[1][0], msg[1][1]))
+                # click.echo("Recorded output: %s, %s" % (msg[1][0], msg[1][1]))
                 return msg[1][1]
             else:
-                click.echo("Error details: %s" % msg[1][0])
+                # click.echo("Error details: %s" % msg[1][0])
                 return None
         else:
             return None
